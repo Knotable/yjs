@@ -52,7 +52,7 @@ export class Skip extends AbstractStruct {
   /**
    * @param {Transaction} transaction
    * @param {StructStore} store
-   * @return {null | number}
+   * @return {null | string}
    */
   getMissing (transaction, store) {
     return null
