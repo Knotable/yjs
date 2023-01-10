@@ -141,9 +141,12 @@ export class LazyStructWriter {
    * @param {UpdateEncoderV1 | UpdateEncoderV2} encoder
    */
   constructor (encoder) {
-    this.currClient = 0
+    this.currClient = ''
     this.startClock = 0
     this.written = 0
+    /**
+     * @type UpdateEncoderV1 | UpdateEncoderV2
+     */
     this.encoder = encoder
     /**
      * We want to write operations lazily, but also we need to know beforehand how many operations we want to write for each client.
@@ -186,7 +189,7 @@ export const encodeStateVectorFromUpdateV2 = (update, YEncoder = DSEncoderV2, YD
           size++
           // We found a new client
           // write what we have to the encoder
-          encoding.writeVarUint(encoder.restEncoder, currClient)
+          encoding.writeVarString(encoder.restEncoder, currClient)
           encoding.writeVarUint(encoder.restEncoder, currClock)
         }
         currClient = curr.id.client
@@ -204,7 +207,7 @@ export const encodeStateVectorFromUpdateV2 = (update, YEncoder = DSEncoderV2, YD
     // write what we have
     if (currClock !== 0) {
       size++
-      encoding.writeVarUint(encoder.restEncoder, currClient)
+      encoding.writeVarString(encoder.restEncoder, currClient)
       encoding.writeVarUint(encoder.restEncoder, currClock)
     }
     // prepend the size of the state vector
@@ -228,15 +231,15 @@ export const encodeStateVectorFromUpdate = update => encodeStateVectorFromUpdate
 /**
  * @param {Uint8Array} update
  * @param {typeof UpdateDecoderV1 | typeof UpdateDecoderV2} YDecoder
- * @return {{ from: Map<number,number>, to: Map<number,number> }}
+ * @return {{ from: Map<string,number>, to: Map<string,number> }}
  */
 export const parseUpdateMetaV2 = (update, YDecoder = UpdateDecoderV2) => {
   /**
-   * @type {Map<number, number>}
+   * @type {Map<string, number>}
    */
   const from = new Map()
   /**
-   * @type {Map<number, number>}
+   * @type {Map<string, number>}
    */
   const to = new Map()
   const updateDecoder = new LazyStructReader(new YDecoder(decoding.createDecoder(update)), false)
@@ -266,7 +269,7 @@ export const parseUpdateMetaV2 = (update, YDecoder = UpdateDecoderV2) => {
 
 /**
  * @param {Uint8Array} update
- * @return {{ from: Map<number,number>, to: Map<number,number> }}
+ * @return {{ from: Map<string,number>, to: Map<string,number> }}
  */
 export const parseUpdateMeta = update => parseUpdateMetaV2(update, UpdateDecoderV1)
 

@@ -49,7 +49,7 @@ import * as math from 'lib0/math'
 /**
  * @param {UpdateEncoderV1 | UpdateEncoderV2} encoder
  * @param {Array<GC|Item>} structs All structs by `client`
- * @param {number} client
+ * @param {string} client
  * @param {number} clock write structs starting with `ID(client,clock)`
  *
  * @function
@@ -73,7 +73,7 @@ const writeStructs = (encoder, structs, client, clock) => {
 /**
  * @param {UpdateEncoderV1 | UpdateEncoderV2} encoder
  * @param {StructStore} store
- * @param {Map<number,number>} _sm
+ * @param {Map<string,number>} _sm
  *
  * @private
  * @function
@@ -105,14 +105,14 @@ export const writeClientsStructs = (encoder, store, _sm) => {
 /**
  * @param {UpdateDecoderV1 | UpdateDecoderV2} decoder The decoder object to read data from.
  * @param {Doc} doc
- * @return {Map<number, { i: number, refs: Array<Item | GC> }>}
+ * @return {Map<string, { i: number, refs: Array<Item | GC | Skip> }>}
  *
  * @private
  * @function
  */
 export const readClientsStructRefs = (decoder, doc) => {
   /**
-   * @type {Map<number, { i: number, refs: Array<Item | GC> }>}
+   * @type {Map<string, { i: number, refs: Array<Item | GC | Skip> }>}
    */
   const clientRefs = map.create()
   const numOfStateUpdates = decoding.readVarUint(decoder.restDecoder)
@@ -219,8 +219,8 @@ export const readClientsStructRefs = (decoder, doc) => {
  *
  * @param {Transaction} transaction
  * @param {StructStore} store
- * @param {Map<number, { i: number, refs: (GC | Item)[] }>} clientsStructRefs
- * @return { null | { update: Uint8Array, missing: Map<number,number> } }
+ * @param {Map<string, { i: number, refs: (GC | Item)[] }>} clientsStructRefs
+ * @return { null | { update: Uint8Array, missing: Map<string,number> } }
  *
  * @private
  * @function
@@ -231,7 +231,7 @@ const integrateStructs = (transaction, store, clientsStructRefs) => {
    */
   const stack = []
   // sort them so that we take the higher id first, in case of conflicts the lower id will probably not conflict with the id from the higher user.
-  let clientsStructRefsIds = Array.from(clientsStructRefs.keys()).sort((a, b) => a - b)
+  let clientsStructRefsIds = Array.from(clientsStructRefs.keys()).sort((a, b) => a === b ? 0 : a > b ? 1 : -1)
   if (clientsStructRefsIds.length === 0) {
     return null
   }
@@ -259,9 +259,12 @@ const integrateStructs = (transaction, store, clientsStructRefs) => {
    * @type {StructStore}
    */
   const restStructs = new StructStore()
+  /**
+   * @type {Map<string, number>}
+   */
   const missingSV = new Map()
   /**
-   * @param {number} client
+   * @param {string} client
    * @param {number} clock
    */
   const updateMissingSv = (client, clock) => {
@@ -317,10 +320,10 @@ const integrateStructs = (transaction, store, clientsStructRefs) => {
           /**
            * @type {{ refs: Array<GC|Item>, i: number }}
            */
-          const structRefs = clientsStructRefs.get(/** @type {number} */ (missing)) || { refs: [], i: 0 }
+          const structRefs = clientsStructRefs.get(/** @type {string} */ (missing)) || { refs: [], i: 0 }
           if (structRefs.refs.length === structRefs.i) {
             // This update message causally depends on another update message that doesn't exist yet
-            updateMissingSv(/** @type {number} */ (missing), getState(store, missing))
+            updateMissingSv(/** @type {string} */ (missing), getState(store, /** @type {string} */(missing)))
             addStackToRestSS()
           } else {
             stackHead = structRefs.refs[structRefs.i++]
@@ -498,7 +501,7 @@ export const applyUpdate = (ydoc, update, transactionOrigin) => applyUpdateV2(yd
  *
  * @param {UpdateEncoderV1 | UpdateEncoderV2} encoder
  * @param {Doc} doc
- * @param {Map<number,number>} [targetStateVector] The state of the target that receives the update. Leave empty to write all known structs
+ * @param {Map<string,number>} [targetStateVector] The state of the target that receives the update. Leave empty to write all known structs
  *
  * @function
  */
@@ -559,7 +562,7 @@ export const encodeStateAsUpdate = (doc, encodedTargetStateVector) => encodeStat
  * Read state vector from Decoder and return as Map
  *
  * @param {DSDecoderV1 | DSDecoderV2} decoder
- * @return {Map<number,number>} Maps `client` to the number next expected `clock` from that client.
+ * @return {Map<string,number>} Maps `client` to the number next expected `clock` from that client.
  *
  * @function
  */
@@ -567,7 +570,7 @@ export const readStateVector = decoder => {
   const ss = new Map()
   const ssLength = decoding.readVarUint(decoder.restDecoder)
   for (let i = 0; i < ssLength; i++) {
-    const client = decoding.readVarUint(decoder.restDecoder)
+    const client = decoding.readVarString(decoder.restDecoder)
     const clock = decoding.readVarUint(decoder.restDecoder)
     ss.set(client, clock)
   }
@@ -588,7 +591,7 @@ export const readStateVector = decoder => {
  * Read decodedState and return State as Map.
  *
  * @param {Uint8Array} decodedState
- * @return {Map<number,number>} Maps `client` to the number next expected `clock` from that client.
+ * @return {Map<string,number>} Maps `client` to the number next expected `clock` from that client.
  *
  * @function
  */
@@ -596,13 +599,20 @@ export const decodeStateVector = decodedState => readStateVector(new DSDecoderV1
 
 /**
  * @param {DSEncoderV1 | DSEncoderV2} encoder
- * @param {Map<number,number>} sv
+ * @param {Map<string,number>} sv
  * @function
  */
 export const writeStateVector = (encoder, sv) => {
   encoding.writeVarUint(encoder.restEncoder, sv.size)
-  Array.from(sv.entries()).sort((a, b) => b[0] - a[0]).forEach(([client, clock]) => {
-    encoding.writeVarUint(encoder.restEncoder, client) // @todo use a special client decoder that is based on mapping
+  /**
+   * @param {string} clientA
+   * @param {string} clientB
+   * @returns {number}
+   */
+  const compareClients = (clientA, clientB) =>
+    clientA === clientB ? 0 : clientB > clientA ? 1 : -1
+  Array.from(sv.entries()).sort((a, b) => compareClients(b[0], a[0])).forEach(([client, clock]) => {
+    encoding.writeVarString(encoder.restEncoder, client) // @todo use a special client decoder that is based on mapping
     encoding.writeVarUint(encoder.restEncoder, clock)
   })
   return encoder
@@ -619,7 +629,7 @@ export const writeDocumentStateVector = (encoder, doc) => writeStateVector(encod
 /**
  * Encode State as Uint8Array.
  *
- * @param {Doc|Map<number,number>} doc
+ * @param {Doc|Map<string,number>} doc
  * @param {DSEncoderV1 | DSEncoderV2} [encoder]
  * @return {Uint8Array}
  *
@@ -637,7 +647,7 @@ export const encodeStateVectorV2 = (doc, encoder = new DSEncoderV2()) => {
 /**
  * Encode State as Uint8Array.
  *
- * @param {Doc|Map<number,number>} doc
+ * @param {Doc|Map<string,number>} doc
  * @return {Uint8Array}
  *
  * @function

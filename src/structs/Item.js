@@ -359,7 +359,7 @@ export class Item extends AbstractStruct {
    *
    * @param {Transaction} transaction
    * @param {StructStore} store
-   * @return {null | number}
+   * @return {null | string}
    */
   getMissing (transaction, store) {
     if (this.origin && this.origin.client !== this.id.client && this.origin.clock >= getState(store, this.origin.client)) {

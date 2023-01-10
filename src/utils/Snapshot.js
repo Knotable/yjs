@@ -26,7 +26,7 @@ import * as encoding from 'lib0/encoding'
 export class Snapshot {
   /**
    * @param {DeleteSet} ds
-   * @param {Map<number,number>} sv state map
+   * @param {Map<string,number>} sv state map
    */
   constructor (ds, sv) {
     /**
@@ -35,7 +35,7 @@ export class Snapshot {
     this.ds = ds
     /**
      * State Map
-     * @type {Map<number,number>}
+     * @type {Map<string,number>}
      */
     this.sv = sv
   }
@@ -109,7 +109,7 @@ export const decodeSnapshot = buf => decodeSnapshotV2(buf, new DSDecoderV1(decod
 
 /**
  * @param {DeleteSet} ds
- * @param {Map<number,number>} sm
+ * @param {Map<string,number>} sm
  * @return {Snapshot}
  */
 export const createSnapshot = (ds, sm) => new Snapshot(ds, sm)

@@ -34,9 +34,9 @@ export const testOriginInTransaction = _tc => {
  */
 export const testClientIdDuplicateChange = tc => {
   const doc1 = new Y.Doc()
-  doc1.clientID = 0
+  doc1.clientID = '0'
   const doc2 = new Y.Doc()
-  doc2.clientID = 0
+  doc2.clientID = '0'
   t.assert(doc2.clientID === doc1.clientID)
   doc1.getArray('a').insert(0, [1, 2])
   Y.applyUpdate(doc2, Y.encodeStateAsUpdate(doc1))

@@ -11,11 +11,11 @@ import * as error from 'lib0/error'
 export class StructStore {
   constructor () {
     /**
-     * @type {Map<number,Array<GC|Item>>}
+     * @type {Map<string,Array<GC|Item>>}
      */
     this.clients = new Map()
     /**
-     * @type {null | { missing: Map<number, number>, update: Uint8Array }}
+     * @type {null | { missing: Map<string, number>, update: Uint8Array }}
      */
     this.pendingStructs = null
     /**
@@ -30,7 +30,7 @@ export class StructStore {
  * Note that clock refers to the next expected clock id.
  *
  * @param {StructStore} store
- * @return {Map<number,number>}
+ * @return {Map<string,number>}
  *
  * @public
  * @function
@@ -46,7 +46,7 @@ export const getStateVector = store => {
 
 /**
  * @param {StructStore} store
- * @param {number} client
+ * @param {string} client
  * @return {number}
  *
  * @public

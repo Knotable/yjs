@@ -11,7 +11,7 @@ import * as decoding from 'lib0/decoding'
  * @property {function(Y.Doc):Uint8Array} Enc.encodeStateAsUpdate
  * @property {function(Y.Doc, Uint8Array):void} Enc.applyUpdate
  * @property {function(Uint8Array):void} Enc.logUpdate
- * @property {function(Uint8Array):{from:Map<number,number>,to:Map<number,number>}} Enc.parseUpdateMeta
+ * @property {function(Uint8Array):{from:Map<string,number>,to:Map<string,number>}} Enc.parseUpdateMeta
  * @property {function(Y.Doc):Uint8Array} Enc.encodeStateVector
  * @property {function(Uint8Array):Uint8Array} Enc.encodeStateVectorFromUpdate
  * @property {string} Enc.updateEventName

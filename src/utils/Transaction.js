@@ -63,12 +63,12 @@ export class Transaction {
     this.deleteSet = new DeleteSet()
     /**
      * Holds the state before the transaction started.
-     * @type {Map<Number,Number>}
+     * @type {Map<string,Number>}
      */
     this.beforeState = getStateVector(doc.store)
     /**
      * Holds the state after the transaction.
-     * @type {Map<Number,Number>}
+     * @type {Map<string,Number>}
      */
     this.afterState = new Map()
     /**

@@ -23,7 +23,7 @@ export const testBasicRestoreSnapshot = tc => {
 export const testEmptyRestoreSnapshot = tc => {
   const doc = new Y.Doc({ gc: false })
   const snap = Y.snapshot(doc)
-  snap.sv.set(9999, 0)
+  snap.sv.set('9999', 0)
   doc.getArray().insert(0, ['world'])
 
   const docRestored = Y.createDocFromSnapshot(doc, snap)

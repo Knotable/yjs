@@ -69,7 +69,7 @@ export class PermanentUserData {
 
   /**
    * @param {Doc} doc
-   * @param {number} clientid
+   * @param {string} clientid
    * @param {string} userDescription
    * @param {Object} [conf]
    * @param {function(Transaction, DeleteSet):boolean} [conf.filter]

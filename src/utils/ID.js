@@ -7,13 +7,13 @@ import * as error from 'lib0/error'
 
 export class ID {
   /**
-   * @param {number} client client id
+   * @param {string} client client id
    * @param {number} clock unique per client id, continuous number
    */
   constructor (client, clock) {
     /**
      * Client id
-     * @type {number}
+     * @type {string}
      */
     this.client = client
     /**
@@ -34,7 +34,7 @@ export class ID {
 export const compareIDs = (a, b) => a === b || (a !== null && b !== null && a.client === b.client && a.clock === b.clock)
 
 /**
- * @param {number} client
+ * @param {string} client
  * @param {number} clock
  *
  * @private
@@ -50,7 +50,7 @@ export const createID = (client, clock) => new ID(client, clock)
  * @function
  */
 export const writeID = (encoder, id) => {
-  encoding.writeVarUint(encoder, id.client)
+  encoding.writeVarString(encoder, id.client)
   encoding.writeVarUint(encoder, id.clock)
 }
 
@@ -66,7 +66,7 @@ export const writeID = (encoder, id) => {
  * @function
  */
 export const readID = decoder =>
-  createID(decoding.readVarUint(decoder), decoding.readVarUint(decoder))
+  createID(decoding.readVarString(decoder), decoding.readVarUint(decoder))
 
 /**
  * The top types are mapped from y.share.get(keyname) => type.

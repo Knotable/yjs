@@ -36,14 +36,14 @@ export class UpdateDecoderV1 extends DSDecoderV1 {
    * @return {ID}
    */
   readLeftID () {
-    return createID(decoding.readVarUint(this.restDecoder), decoding.readVarUint(this.restDecoder))
+    return createID(decoding.readVarString(this.restDecoder), decoding.readVarUint(this.restDecoder))
   }
 
   /**
    * @return {ID}
    */
   readRightID () {
-    return createID(decoding.readVarUint(this.restDecoder), decoding.readVarUint(this.restDecoder))
+    return createID(decoding.readVarString(this.restDecoder), decoding.readVarUint(this.restDecoder))
   }
 
   /**
@@ -51,7 +51,7 @@ export class UpdateDecoderV1 extends DSDecoderV1 {
    * Use this in favor of readID whenever possible to reduce the number of objects created.
    */
   readClient () {
-    return decoding.readVarUint(this.restDecoder)
+    return decoding.readVarString(this.restDecoder)
   }
 
   /**
@@ -171,7 +171,7 @@ export class UpdateDecoderV2 extends DSDecoderV2 {
     this.keys = []
     decoding.readVarUint(decoder) // read feature flag - currently unused
     this.keyClockDecoder = new decoding.IntDiffOptRleDecoder(decoding.readVarUint8Array(decoder))
-    this.clientDecoder = new decoding.UintOptRleDecoder(decoding.readVarUint8Array(decoder))
+    this.clientDecoder = new decoding.StringDecoder(decoding.readVarUint8Array(decoder))
     this.leftClockDecoder = new decoding.IntDiffOptRleDecoder(decoding.readVarUint8Array(decoder))
     this.rightClockDecoder = new decoding.IntDiffOptRleDecoder(decoding.readVarUint8Array(decoder))
     this.infoDecoder = new decoding.RleDecoder(decoding.readVarUint8Array(decoder), decoding.readUint8)

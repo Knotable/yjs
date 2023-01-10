@@ -41,7 +41,7 @@ export class DeleteItem {
 export class DeleteSet {
   constructor () {
     /**
-     * @type {Map<number,Array<DeleteItem>>}
+     * @type {Map<string,Array<DeleteItem>>}
      */
     this.clients = new Map()
   }
@@ -163,7 +163,7 @@ export const mergeDeleteSets = dss => {
 
 /**
  * @param {DeleteSet} ds
- * @param {number} client
+ * @param {string} client
  * @param {number} clock
  * @param {number} length
  *
@@ -221,7 +221,7 @@ export const writeDeleteSet = (encoder, ds) => {
   encoding.writeVarUint(encoder.restEncoder, ds.clients.size)
   ds.clients.forEach((dsitems, client) => {
     encoder.resetDsCurVal()
-    encoding.writeVarUint(encoder.restEncoder, client)
+    encoding.writeVarString(encoder.restEncoder, client)
     const len = dsitems.length
     encoding.writeVarUint(encoder.restEncoder, len)
     for (let i = 0; i < len; i++) {
@@ -244,7 +244,7 @@ export const readDeleteSet = decoder => {
   const numClients = decoding.readVarUint(decoder.restDecoder)
   for (let i = 0; i < numClients; i++) {
     decoder.resetDsCurVal()
-    const client = decoding.readVarUint(decoder.restDecoder)
+    const client = decoding.readVarString(decoder.restDecoder)
     const numberOfDeletes = decoding.readVarUint(decoder.restDecoder)
     if (numberOfDeletes > 0) {
       const dsField = map.setIfUndefined(ds.clients, client, () => [])
@@ -274,7 +274,7 @@ export const readAndApplyDeleteSet = (decoder, transaction, store) => {
   const numClients = decoding.readVarUint(decoder.restDecoder)
   for (let i = 0; i < numClients; i++) {
     decoder.resetDsCurVal()
-    const client = decoding.readVarUint(decoder.restDecoder)
+    const client = decoding.readVarString(decoder.restDecoder)
     const numberOfDeletes = decoding.readVarUint(decoder.restDecoder)
     const structs = store.clients.get(client) || []
     const state = getState(store, client)

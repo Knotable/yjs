@@ -39,7 +39,7 @@ export class UpdateEncoderV1 extends DSEncoderV1 {
    * @param {ID} id
    */
   writeLeftID (id) {
-    encoding.writeVarUint(this.restEncoder, id.client)
+    encoding.writeVarString(this.restEncoder, id.client)
     encoding.writeVarUint(this.restEncoder, id.clock)
   }
 
@@ -47,16 +47,16 @@ export class UpdateEncoderV1 extends DSEncoderV1 {
    * @param {ID} id
    */
   writeRightID (id) {
-    encoding.writeVarUint(this.restEncoder, id.client)
+    encoding.writeVarString(this.restEncoder, id.client)
     encoding.writeVarUint(this.restEncoder, id.clock)
   }
 
   /**
    * Use writeClient and writeClock instead of writeID if possible.
-   * @param {number} client
+   * @param {string} client
    */
   writeClient (client) {
-    encoding.writeVarUint(this.restEncoder, client)
+    encoding.writeVarString(this.restEncoder, client)
   }
 
   /**
@@ -175,7 +175,7 @@ export class UpdateEncoderV2 extends DSEncoderV2 {
      */
     this.keyClock = 0
     this.keyClockEncoder = new encoding.IntDiffOptRleEncoder()
-    this.clientEncoder = new encoding.UintOptRleEncoder()
+    this.clientEncoder = new encoding.StringEncoder()
     this.leftClockEncoder = new encoding.IntDiffOptRleEncoder()
     this.rightClockEncoder = new encoding.IntDiffOptRleEncoder()
     this.infoEncoder = new encoding.RleEncoder(encoding.writeUint8)
@@ -219,7 +219,7 @@ export class UpdateEncoderV2 extends DSEncoderV2 {
   }
 
   /**
-   * @param {number} client
+   * @param {string} client
    */
   writeClient (client) {
     this.clientEncoder.write(client)
