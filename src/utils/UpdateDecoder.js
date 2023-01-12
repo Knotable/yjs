@@ -1,7 +1,7 @@
 import * as buffer from 'lib0/buffer'
 import * as decoding from 'lib0/decoding'
 import {
-  ID, createID
+  ID, createID, decodeClient
 } from '../internals.js'
 
 export class DSDecoderV1 {
@@ -36,14 +36,14 @@ export class UpdateDecoderV1 extends DSDecoderV1 {
    * @return {ID}
    */
   readLeftID () {
-    return createID(decoding.readVarString(this.restDecoder), decoding.readVarUint(this.restDecoder))
+    return createID(this.readClient(), decoding.readVarUint(this.restDecoder))
   }
 
   /**
    * @return {ID}
    */
   readRightID () {
-    return createID(decoding.readVarString(this.restDecoder), decoding.readVarUint(this.restDecoder))
+    return createID(this.readClient(), decoding.readVarUint(this.restDecoder))
   }
 
   /**
@@ -51,7 +51,7 @@ export class UpdateDecoderV1 extends DSDecoderV1 {
    * Use this in favor of readID whenever possible to reduce the number of objects created.
    */
   readClient () {
-    return decoding.readVarString(this.restDecoder)
+    return decodeClient(this.restDecoder)
   }
 
   /**
@@ -185,14 +185,14 @@ export class UpdateDecoderV2 extends DSDecoderV2 {
    * @return {ID}
    */
   readLeftID () {
-    return new ID(this.clientDecoder.read(), this.leftClockDecoder.read())
+    return new ID(this.readClient(), this.leftClockDecoder.read())
   }
 
   /**
    * @return {ID}
    */
   readRightID () {
-    return new ID(this.clientDecoder.read(), this.rightClockDecoder.read())
+    return new ID(this.readClient(), this.rightClockDecoder.read())
   }
 
   /**
@@ -200,7 +200,11 @@ export class UpdateDecoderV2 extends DSDecoderV2 {
    * Use this in favor of readID whenever possible to reduce the number of objects created.
    */
   readClient () {
-    return this.clientDecoder.read()
+    const varType = this.clientDecoder.read()
+    if (varType === '[str]') {
+      return this.clientDecoder.read()
+    }
+    return varType
   }
 
   /**

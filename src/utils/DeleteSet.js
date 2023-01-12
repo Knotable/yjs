@@ -5,6 +5,8 @@ import {
   splitItem,
   iterateStructs,
   UpdateEncoderV2,
+  decodeClient,
+  encodeClient,
   DSDecoderV1, DSEncoderV1, DSDecoderV2, DSEncoderV2, Item, GC, StructStore, Transaction, ID // eslint-disable-line
 } from '../internals.js'
 
@@ -221,7 +223,7 @@ export const writeDeleteSet = (encoder, ds) => {
   encoding.writeVarUint(encoder.restEncoder, ds.clients.size)
   ds.clients.forEach((dsitems, client) => {
     encoder.resetDsCurVal()
-    encoding.writeVarString(encoder.restEncoder, client)
+    encodeClient(encoder.restEncoder, client)
     const len = dsitems.length
     encoding.writeVarUint(encoder.restEncoder, len)
     for (let i = 0; i < len; i++) {
@@ -244,7 +246,7 @@ export const readDeleteSet = decoder => {
   const numClients = decoding.readVarUint(decoder.restDecoder)
   for (let i = 0; i < numClients; i++) {
     decoder.resetDsCurVal()
-    const client = decoding.readVarString(decoder.restDecoder)
+    const client = decodeClient(decoder.restDecoder)
     const numberOfDeletes = decoding.readVarUint(decoder.restDecoder)
     if (numberOfDeletes > 0) {
       const dsField = map.setIfUndefined(ds.clients, client, () => [])
@@ -274,7 +276,7 @@ export const readAndApplyDeleteSet = (decoder, transaction, store) => {
   const numClients = decoding.readVarUint(decoder.restDecoder)
   for (let i = 0; i < numClients; i++) {
     decoder.resetDsCurVal()
-    const client = decoding.readVarString(decoder.restDecoder)
+    const client = decodeClient(decoder.restDecoder)
     const numberOfDeletes = decoding.readVarUint(decoder.restDecoder)
     const structs = store.clients.get(client) || []
     const state = getState(store, client)

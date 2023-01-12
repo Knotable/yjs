@@ -3,6 +3,7 @@ import * as error from 'lib0/error'
 import * as encoding from 'lib0/encoding'
 
 import {
+  encodeClient,
   ID // eslint-disable-line
 } from '../internals.js'
 
@@ -39,7 +40,7 @@ export class UpdateEncoderV1 extends DSEncoderV1 {
    * @param {ID} id
    */
   writeLeftID (id) {
-    encoding.writeVarString(this.restEncoder, id.client)
+    this.writeClient(id.client)
     encoding.writeVarUint(this.restEncoder, id.clock)
   }
 
@@ -47,7 +48,7 @@ export class UpdateEncoderV1 extends DSEncoderV1 {
    * @param {ID} id
    */
   writeRightID (id) {
-    encoding.writeVarString(this.restEncoder, id.client)
+    this.writeClient(id.client)
     encoding.writeVarUint(this.restEncoder, id.clock)
   }
 
@@ -56,7 +57,7 @@ export class UpdateEncoderV1 extends DSEncoderV1 {
    * @param {string} client
    */
   writeClient (client) {
-    encoding.writeVarString(this.restEncoder, client)
+    encodeClient(this.restEncoder, client)
   }
 
   /**
@@ -206,7 +207,7 @@ export class UpdateEncoderV2 extends DSEncoderV2 {
    * @param {ID} id
    */
   writeLeftID (id) {
-    this.clientEncoder.write(id.client)
+    this.writeClient(id.client)
     this.leftClockEncoder.write(id.clock)
   }
 
@@ -214,7 +215,7 @@ export class UpdateEncoderV2 extends DSEncoderV2 {
    * @param {ID} id
    */
   writeRightID (id) {
-    this.clientEncoder.write(id.client)
+    this.writeClient(id.client)
     this.rightClockEncoder.write(id.clock)
   }
 
@@ -222,6 +223,7 @@ export class UpdateEncoderV2 extends DSEncoderV2 {
    * @param {string} client
    */
   writeClient (client) {
+    this.clientEncoder.write('[str]')
     this.clientEncoder.write(client)
   }
 

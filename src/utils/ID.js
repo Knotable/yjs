@@ -1,5 +1,9 @@
 
-import { AbstractType } from '../internals.js' // eslint-disable-line
+import {
+  decodeClient,
+  encodeClient,
+  AbstractType, // eslint-disable-line
+} from '../internals.js'
 
 import * as decoding from 'lib0/decoding'
 import * as encoding from 'lib0/encoding'
@@ -50,7 +54,7 @@ export const createID = (client, clock) => new ID(client, clock)
  * @function
  */
 export const writeID = (encoder, id) => {
-  encoding.writeVarString(encoder, id.client)
+  encodeClient(encoder, id.client)
   encoding.writeVarUint(encoder, id.clock)
 }
 
@@ -66,7 +70,7 @@ export const writeID = (encoder, id) => {
  * @function
  */
 export const readID = decoder =>
-  createID(decoding.readVarString(decoder), decoding.readVarUint(decoder))
+  createID(decodeClient(decoder), decoding.readVarUint(decoder))
 
 /**
  * The top types are mapped from y.share.get(keyname) => type.

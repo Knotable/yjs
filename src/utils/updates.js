@@ -14,6 +14,7 @@ import {
   DSEncoderV1,
   DSEncoderV2,
   decodeStateVector,
+  encodeClient,
   Item, GC, UpdateDecoderV1, UpdateDecoderV2, UpdateEncoderV1, UpdateEncoderV2 // eslint-disable-line
 } from '../internals.js'
 
@@ -189,7 +190,7 @@ export const encodeStateVectorFromUpdateV2 = (update, YEncoder = DSEncoderV2, YD
           size++
           // We found a new client
           // write what we have to the encoder
-          encoding.writeVarString(encoder.restEncoder, currClient)
+          encodeClient(encoder.restEncoder, currClient)
           encoding.writeVarUint(encoder.restEncoder, currClock)
         }
         currClient = curr.id.client
@@ -207,7 +208,7 @@ export const encodeStateVectorFromUpdateV2 = (update, YEncoder = DSEncoderV2, YD
     // write what we have
     if (currClock !== 0) {
       size++
-      encoding.writeVarString(encoder.restEncoder, currClient)
+      encodeClient(encoder.restEncoder, currClient)
       encoding.writeVarUint(encoder.restEncoder, currClock)
     }
     // prepend the size of the state vector
@@ -350,7 +351,7 @@ export const mergeUpdatesV2 = (updates, YDecoder = UpdateDecoderV2, YEncoder = U
             return clockDiff
           }
         } else {
-          return dec2.curr.id.client - dec1.curr.id.client
+          return dec2.curr.id.client > dec1.curr.id.client ? 1 : -1
         }
       }
     )
@@ -360,6 +361,7 @@ export const mergeUpdatesV2 = (updates, YDecoder = UpdateDecoderV2, YEncoder = U
     const currDecoder = lazyStructDecoders[0]
     // write from currDecoder until the next operation is from another client or if filler-struct
     // then we need to reorder the decoders and find the next operation to write
+    /** @type string */
     const firstClient = /** @type {Item | GC} */ (currDecoder.curr).id.client
 
     if (currWrite !== null) {

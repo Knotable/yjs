@@ -64,7 +64,7 @@ const useV2Encoding = () => {
 export class TestYInstance extends Y.Doc {
   /**
    * @param {TestConnector} testConnector
-   * @param {number} clientID
+   * @param {string} clientID
    */
   constructor (testConnector, clientID) {
     super()
@@ -165,7 +165,7 @@ export class TestConnector {
 
   /**
    * Create a new Y instance and add it to the list of connections
-   * @param {number} clientID
+   * @param {string} clientID
    */
   createY (clientID) {
     return new TestYInstance(this, clientID)
@@ -284,8 +284,9 @@ export const init = (tc, { users = 5 } = {}, initTestObject) => {
   const testConnector = new TestConnector(gen)
   result.testConnector = testConnector
   for (let i = 0; i < users; i++) {
-    const y = testConnector.createY(i)
-    y.clientID = i.toString()
+    const clientID = i.toString()
+    const y = testConnector.createY(clientID)
+    y.clientID = clientID
     result.users.push(y)
     result['array' + i] = y.getArray('array')
     result['map' + i] = y.getMap('map')

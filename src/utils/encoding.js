@@ -559,6 +559,34 @@ export const encodeStateAsUpdateV2 = (doc, encodedTargetStateVector = new Uint8A
 export const encodeStateAsUpdate = (doc, encodedTargetStateVector) => encodeStateAsUpdateV2(doc, encodedTargetStateVector, new UpdateEncoderV1())
 
 /**
+ * @param {decoding.Decoder} decoder
+ * @returns {string}
+ */
+export const decodeClient = (decoder) => {
+  const pos = decoder.pos
+  try {
+    const varType = decoding.peekVarString(decoder)
+    if (varType === '[str]') {
+      decoding.readVarString(decoder)
+      return decoding.readVarString(decoder)
+    }
+  } catch (err) {
+    console.error('Cannot decode client as a string value. Trying to decode uint value')
+    decoder.pos = pos
+  }
+  return decoding.readVarUint(decoder).toString()
+}
+
+/**
+ * @param {encoding.Encoder} encoder
+ * @param {string} client
+ */
+export const encodeClient = (encoder, client) => {
+  encoding.writeVarString(encoder, '[str]')
+  encoding.writeVarString(encoder, client)
+}
+
+/**
  * Read state vector from Decoder and return as Map
  *
  * @param {DSDecoderV1 | DSDecoderV2} decoder
@@ -570,7 +598,7 @@ export const readStateVector = decoder => {
   const ss = new Map()
   const ssLength = decoding.readVarUint(decoder.restDecoder)
   for (let i = 0; i < ssLength; i++) {
-    const client = decoding.readVarString(decoder.restDecoder)
+    const client = decodeClient(decoder.restDecoder)
     const clock = decoding.readVarUint(decoder.restDecoder)
     ss.set(client, clock)
   }
@@ -612,7 +640,7 @@ export const writeStateVector = (encoder, sv) => {
   const compareClients = (clientA, clientB) =>
     clientA === clientB ? 0 : clientB > clientA ? 1 : -1
   Array.from(sv.entries()).sort((a, b) => compareClients(b[0], a[0])).forEach(([client, clock]) => {
-    encoding.writeVarString(encoder.restEncoder, client) // @todo use a special client decoder that is based on mapping
+    encodeClient(encoder.restEncoder, client) // @todo use a special client decoder that is based on mapping
     encoding.writeVarUint(encoder.restEncoder, clock)
   })
   return encoder
